@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     //
-    PixiGame.renderer = new PIXI.autoDetectRenderer(640, 960);
+    PixiGame.renderer = new PIXI.autoDetectRenderer(
+        window.innerWidth,
+        window.innerHeight,
+        { backgroundColor: 0x1099bb }
+    );
+    PixiGame.renderer.autoResize = true
+
     PixiGame.renderer.view.setAttribute('class', 'renderer');
     document.body.appendChild(PixiGame.renderer.view);
 

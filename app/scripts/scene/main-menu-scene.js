@@ -11,7 +11,7 @@ PixiGame.MainMenuScene.prototype = Object.create(PIXI.Graphics.prototype);
 PixiGame.MainMenuScene.prototype.setup = function() {
     this._playButton = new PIXI.Sprite.fromImage('images/game/play-game-btn.png');
     this._playButton.anchor = new PIXI.Point(0.5, 0.5);
-    this._playButton.position.x = 320;
+    this._playButton.position.x = window.innerWidth / 2;
     this._playButton.position.y = 480;
     this._playButton.interactive = true;
     this._playButton.touchstart = this._playButton.mousedown = this.handlePlayButtonPressed.bind(this);
