@@ -24,7 +24,14 @@ PixiGame.GameScene.prototype.setup = function() {
 
     this._containers = new PIXI.Container()
 
-    this._containers.addChild(new_container(cx, 100))
+    spawn_grid(
+        {
+            x: cx-((100)*1.5)+15, y: 120,
+            width: 3, height: 1,
+            spacing: 100+30
+        },
+        (x,y) => this._containers.addChild(new_container(x,y))
+    )
 
     this._objects = new PIXI.Container()
 
