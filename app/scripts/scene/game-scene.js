@@ -5,6 +5,8 @@ PixiGame.GameScene = function() {
 
     this._containers = null
 
+    this._object_atlas = null
+
     this.setup()
 };
 
@@ -18,20 +20,25 @@ PixiGame.GameScene.prototype = Object.create(PIXI.Graphics.prototype);
 PixiGame.GameScene.prototype.setup = function() {
     let cx = PixiGame.renderer.width/2;
 
+    this._object_atlas = PixiGame.loader.resources["object"].textures
+
     this._containers = new PIXI.Container()
 
     this._containers.addChild(new_container(cx, 100))
 
     this._objects = new PIXI.Container()
 
+    let i = 0;
     spawn_grid(
         {
-            x: cx-((64)*2.5),
-            y: 320, width: 5,
-            height: 5,
+            x: cx-((64)*2.5), y: 320,
+            width: 5, height: 5,
             spacing: 64+30
         },
-        (x,y) => {this._objects.addChild(new_object(x,y))}
+        (x,y) => {
+            let t = this._object_atlas[(i++ % 7) + ".png"]
+            this._objects.addChild(new_object(t, x, y))
+        }
     )
 
     // Add removal behaviour to object
@@ -77,12 +84,12 @@ PixiGame.GameScene.prototype.destroy = function() {
     this.removeChildren();
 }
 
-function new_object(x,y) {
+function new_object(texture, x, y) {
     // Define object appearance
-    let ob = new PIXI.Graphics()
-    ob.beginFill(0xFFFFFF)
-    ob.drawCircle(0, 0, 32)
-    ob.endFill()
+    let ob = new PIXI.Sprite(texture)
+
+    ob.anchor.set(0.5,0.5)
+    ob.scale.set(0.5,0.5)
 
     // Set position and other attributes
     ob.x = x
