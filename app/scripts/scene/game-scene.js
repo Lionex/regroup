@@ -16,9 +16,7 @@ PixiGame.GameScene.prototype = Object.create(PIXI.Graphics.prototype);
 PixiGame.GameScene.prototype.setup = function() {
     this._objects = new PIXI.Container()
 
-    var ob = new_object(window.innerWidth / 2, 320)
-    scale_on_grab(ob, 1.1)
-    this._objects.addChild(ob)
+    this._objects.addChild(new_object(window.innerWidth / 2, 320))
 
     this.addChild(this._objects)
 }
@@ -46,66 +44,70 @@ function new_object(x,y) {
     // Define interactive behaviour
     ob.interactive = true
     ob.buttonMode = true
-    ob
-        // Grab the object
-        .on('mousedown', grab)
-        .on('touchstart', grab)
-        // release the object
-        .on('mouseup', release)
-        .on('touchend', release)
-        .on('mouseupoutside', release)
-        .on('touchupoutside', release)
-        // move the object
-        .on('mousemove', move)
-        .on('touchmove', move)
 
-    // Helper functions for interacitve behaviour
-
-    // Save reference which allows us to grab the pointer position
-    function grab(event) {
-        this.pointer = event.data
-        this.drag = true
-    }
-
-    // Update position of self to pointer position
-    function move() {
-        if (this.drag) {
-            var newPosition = this.pointer.getLocalPosition(this.parent);
-            this.x = newPosition.x
-            this.y = newPosition.y
-        }
-    }
-
-    // Remove reference and stop the drag behaviour
-    function release() {
-        this.data = null
-        this.drag = false
-    }
+    draggable(ob)
+    scale_on_grab(ob, 1.1)
 
     return ob
 }
 
 
-function scale_on_grab(ob, factor) {
+function on_grab(ob, f) {
     ob
-        // Grab the object
-        .on('mousedown', grab)
-        .on('touchstart', grab)
-        // release the object
-        .on('mouseup', release)
-        .on('touchend', release)
-        .on('mouseupoutside', release)
-        .on('touchupoutside', release)
+        .on('mousedown',  f)
+        .on('touchstart', f)
+}
 
-    // Save reference which allows us to grab the pointer position
-    function grab(event) {
-        this.scale.x *= factor
-        this.scale.y *= factor
-    }
 
-    // Remove reference and stop the drag behaviour
-    function release() {
-        this.scale.x /= factor
-        this.scale.y /= factor
-    }
+function on_release(ob, f) {
+    ob
+        .on('mouseup',  f)
+        .on('touchend', f)
+        .on('mouseupoutside',  f)
+        .on('touchendoutside', f)
+}
+
+
+function on_move(ob, f) {
+    ob
+        .on('mousemove', f)
+        .on('touchmove', f)
+}
+
+
+function draggable(ob) {
+    // Grab the object and save reference which allows us to grab the pointer
+    // position
+    on_grab(ob, (event) => {
+        ob.pointer = event.data
+        ob.drag = true
+    })
+
+    // release the object and clear reference to mouse event
+    on_release(ob, () => {
+        ob.data = null
+        ob.drag = false
+    })
+
+    // Update position of self to pointer position
+    on_move(ob, () => {
+        if (ob.drag) {
+            var pointerPos = ob.pointer.getLocalPosition(ob.parent);
+            ob.x = pointerPos.x
+            ob.y = pointerPos.y
+        }
+    })
+}
+
+
+function scale_on_grab(ob, factor) {
+    on_grab(ob, () => {
+        ob.scale.x *= factor
+        ob.scale.y *= factor
+    })
+
+    on_release(ob, () => {
+        ob.scale.x /= factor
+        ob.scale.y /= factor
+    })
 }
