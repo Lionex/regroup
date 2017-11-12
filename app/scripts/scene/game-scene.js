@@ -22,7 +22,19 @@ PixiGame.GameScene.prototype.setup = function() {
 }
 
 
-PixiGame.GameScene.prototype.update = function() {}
+function spawn_grid(grid, new_obj) {
+    for (var i = 0; i < grid.width*grid.height; i++) {
+        new_obj(
+            (i%grid.width) * grid.spacing + grid.x,
+            Math.floor(i/grid.width) * grid.spacing + grid.y
+        )
+    }
+}
+
+
+PixiGame.GameScene.prototype.update = function() {
+
+}
 
 
 PixiGame.GameScene.prototype.destroy = function() {
