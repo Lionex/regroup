@@ -6,6 +6,7 @@ var PixiGame = PixiGame || {};
 // Used by pixi
 PixiGame.stage = null;
 PixiGame.renderer = null;
+PixiGame.loader = null
 
 // Game Loop Controller
 PixiGame.gameLoopController = null;

@@ -20,4 +20,15 @@ document.addEventListener('DOMContentLoaded', function() {
     //
     PixiGame.gameLoopController = new PixiGame.GameLoopController();
     PixiGame.gameLoopController.start();
+
+    PixiGame.loader = PIXI.loader
+
+    // Load assests and start game
+    PixiGame.loader
+        .add('object','images/game/object.json')
+        .load(setup)
+
+    function setup() {
+        PixiGame.gameLoopController.start()
+    }
 });
