@@ -1,9 +1,11 @@
 PixiGame.GameScene = function() {
-    PIXI.Graphics.call(this);
+    PIXI.Graphics.call(this)
 
-    this._objects = null;
+    this._objects = null
 
-    this.setup();
+    this._containers = null
+
+    this.setup()
 };
 
 
@@ -14,10 +16,44 @@ PixiGame.GameScene.prototype = Object.create(PIXI.Graphics.prototype);
 
 
 PixiGame.GameScene.prototype.setup = function() {
+    let cx = PixiGame.renderer.width/2;
+
+    this._containers = new PIXI.Container()
+
+    this._containers.addChild(new_container(cx, 100))
+
     this._objects = new PIXI.Container()
 
-    this._objects.addChild(new_object(window.innerWidth / 2, 320))
+    spawn_grid(
+        {
+            x: cx-((64)*2.5),
+            y: 320, width: 5,
+            height: 5,
+            spacing: 64+30
+        },
+        (x,y) => {this._objects.addChild(new_object(x,y))}
+    )
 
+    // Add removal behaviour to object
+    this._objects.children.map((ob) => {
+        on_move(ob, () => {
+            ob.alpha = 1
+            this._containers.children.map((con) => {
+                if (collide(ob,con,10)) {
+                    ob.alpha = 0.8
+                }
+            })
+        })
+        on_release(ob, () => {
+            this._containers.children.map((con) => {
+                if (collide(ob,con,10)) {
+                    this._objects.removeChild(ob)
+                }
+            })
+        })
+    })
+
+    this.addChild(this._containers)
     this.addChild(this._objects)
 }
 
