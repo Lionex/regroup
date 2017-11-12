@@ -41,7 +41,6 @@ PixiGame.GameScene.prototype.destroy = function() {
     this.removeChildren();
 }
 
-
 function new_object(x,y) {
     // Define object appearance
     let ob = new PIXI.Graphics()
@@ -61,6 +60,29 @@ function new_object(x,y) {
     scale_on_grab(ob, 1.1)
 
     return ob
+}
+
+
+function new_container(x,y) {
+    let ob = new PIXI.Graphics()
+    ob.beginFill(0xFF0000)
+    ob.drawRect(0,0,90,90)
+    ob.endFill()
+
+    ob.interactive = true
+    ob.buttonMode = true
+
+    ob.x = x
+    ob.y = y
+
+    draggable(ob)
+
+    return ob
+}
+
+
+function collide(p1, p2, tol) {
+    return tol > Math.sqrt((p2.y-p1.y)^2 + (p2.x-p1.x)^2)
 }
 
 
