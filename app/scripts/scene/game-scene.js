@@ -5,7 +5,7 @@ PixiGame.GameScene = function() {
 
     this._containers = null
 
-    this._object_atlas = null
+    this._config = null
 
     this.setup()
 };
@@ -18,53 +18,77 @@ PixiGame.GameScene.prototype = Object.create(PIXI.Graphics.prototype);
 
 
 PixiGame.GameScene.prototype.setup = function() {
-    let cx = PixiGame.renderer.width/2;
+    this._config = {
+        ob: {
+            scale: {
+                x: 0.5,
+                y: 0.5,
+            },
+            colors: [
+                0xF9D423,
+                0x79B7B4,
+                0xE1F5C4,
+                0xCE6B5D,
+                0x941F1F,
+                0x7AB317,
+                0x87758F
+            ],
+            texture: {
+                length: 7,
+                id: PixiGame.loader.resources["object"].textures,
+            },
+            spawn: {
+                x: PixiGame.renderer.width/2,
+                y: PixiGame.renderer.height/2,
+                width: 5,
+                heigh: 5,
+            }
+        },
+        con: {
+            scale: {
+                x: 90,
+                y: 90,
+            },
+            line_color: 0x000000,
+            color: 0xFFFFFF,
+            spawn: {
+                x: PixiGame.renderer.width/2,
+                y: PixiGame.renderer.height/8,
+                width: 3,
+                height: 1,
+            }
+        }
+    }
 
-    this._object_atlas = PixiGame.loader.resources["object"].textures
+    // Set config values that are set from other values
+    this._config.ob.spawn.x -=
+        this._config.ob.spawn.width/2*this._config.ob.spawn.spacing - 32
+    this._config.con.spawn.spacing = this._config.con.scale.x*1.2
+    this._config.con.spawn.x -=
+        this._config.con.spawn.width/2*this._config.con.spawn.spacing
+
 
     this._containers = new PIXI.Container()
 
     spawn_grid(
-        {
-            x: cx-((100)*1.5)+15, y: 120,
-            width: 3, height: 1,
-            spacing: 100+30
-        },
-        (x,y) => this._containers.addChild(new_container(x,y))
+        this._config.con.spawn,
+        (x,y) => { this._containers.addChild(
+            new_container(x, y, this._config.con)
+        )}
     )
 
     this._objects = new PIXI.Container()
 
-    let i = 0;
     spawn_grid(
-        {
-            x: cx-((64)*2.5), y: 320,
-            width: 5, height: 5,
-            spacing: 64+30
-        },
+        this._config.ob.spawn,
         (x,y) => {
-            let t = this._object_atlas[(i++ % 7) + ".png"]
-            this._objects.addChild(new_object(t, x, y))
+            ob = new_object(t, x, y, this._config.ob)
+            this._objects.addChild(ob)
         }
     )
 
-    // Add removal behaviour to object
     this._objects.children.map((ob) => {
-        on_move(ob, () => {
-            ob.alpha = 1
-            this._containers.children.map((con) => {
-                if (collide(ob,con,10)) {
-                    ob.alpha = 0.8
-                }
-            })
-        })
-        on_release(ob, () => {
-            this._containers.children.map((con) => {
-                if (collide(ob,con,10)) {
-                    this._objects.removeChild(ob)
-                }
-            })
-        })
+        remove_self(ob, this._objects, this._containers.children)
     })
 
     this.addChild(this._containers)
@@ -83,7 +107,23 @@ function spawn_grid(grid, new_obj) {
 
 
 PixiGame.GameScene.prototype.update = function() {
+    if (this._objects.children.length === 0) {
+        spawn_grid(
+            {
+                x: PixiGame.renderer.width/2-((64)*2.5), y: 320,
+                width: 5, height: 5,
+                spacing: 64+30
+            },
+            (x,y) => {
+                ob = new_object(x, y, this._config.ob)
+                this._objects.addChild(ob)
+            }
+        )
 
+        this._objects.children.map((ob) => {
+            remove_self(ob, this._objects, this._containers.children)
+        })
+    }
 }
 
 
@@ -91,12 +131,18 @@ PixiGame.GameScene.prototype.destroy = function() {
     this.removeChildren();
 }
 
-function new_object(texture, x, y) {
+
+function new_object(x, y, config) {
     // Define object appearance
+
+    let rand = Math.floor(Math.random() * config.texture.length)
+    let texture = config.texture.id[rand+".png"]
     let ob = new PIXI.Sprite(texture)
 
     ob.anchor.set(0.5,0.5)
-    ob.scale.set(0.5,0.5)
+    ob.scale.set(config.scale.x, config.scale.y)
+    ob.rotation = Math.floor(Math.random()*4) * Math.PI/2
+    ob.tint = config.colors[Math.floor(Math.random() * config.colors.length)]
 
     // Set position and other attributes
     ob.x = x
@@ -113,10 +159,30 @@ function new_object(texture, x, y) {
 }
 
 
-function new_container(x,y) {
+function remove_self(self, parent, colliders) {
+    on_move(self, () => {
+        self.alpha = 1
+        colliders.map((con) => {
+            if (collide(self,con,10)) {
+                self.alpha = 0.8
+            }
+        })
+    })
+    on_release(self, () => {
+        colliders.map((con) => {
+            if (collide(self,con,10)) {
+                parent.removeChild(self)
+            }
+        })
+    })
+}
+
+
+function new_container(x,y,config) {
     let ob = new PIXI.Graphics()
-    ob.beginFill(0xFF0000)
-    ob.drawRect(0,0,90,90)
+    ob.lineStyle(config.scale.x/10, config.line_color)
+    ob.beginFill(config.color)
+    ob.drawRect(0,0,config.scale.x,config.scale.y)
     ob.endFill()
 
     ob.interactive = true
